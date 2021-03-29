@@ -17,7 +17,7 @@ $port = 2083; // cPanel only
 $cpanel = new Cpanel( $host, $port );
 $cpanel->loginBasic( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
 try {
-	$addondomains = $cpanel->AddonDomain_listaddondomains();
+	$addondomains = $cpanel->AddonDomain_listaddondomains( get_current_user() );
 } catch ( Exception $e ) {
 	send_http_unauthorized();
 }
