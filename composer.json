@@ -1,0 +1,7 @@
+{
+  "name": "sedwebagency/swim-client",
+  "description": "SWIM Client",
+  "require": {
+    "php": ">=5.6"
+  }
+}
