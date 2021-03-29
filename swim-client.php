@@ -1,45 +1,51 @@
 <?php
+header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+
 define( 'SWIM_CLIENT_VERSION', '1.0.0' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
-define( 'SWIM_CLIENT_SECRET_FILE', SWIM_CLIENT_DIR . '/.swim-client-secret' );
-
-// get the secret data
-$swim_client_secret_data = [];
-if ( file_exists( SWIM_CLIENT_SECRET_FILE ) ) {
-	$swim_client_secret_data = json_decode( file_get_contents( SWIM_CLIENT_SECRET_FILE ), true );
-}
-
-// if no secret data
-if ( empty( $swim_client_secret_data ) ) {
-	// create secret data
-	$swim_client_secret_data = array(
-		'swim_client_version' => SWIM_CLIENT_VERSION,
-		'remote_host'         => get_real_ip_address(),
-
-		// random secret
-		'secret'              => bin2hex( openssl_random_pseudo_bytes( 20 ) )
-	);
-
-	// save secret data
-	file_put_contents( SWIM_CLIENT_SECRET_FILE, json_encode( $swim_client_secret_data ) );
-
-	// send reply with secret data
-	send_json_reply( $swim_client_secret_data );
-}
 
 // check request auth
-$secret = isset( $_REQUEST['secret'] ) ? $_REQUEST['secret'] : '';
-if ( $secret !== $swim_client_secret_data['secret'] ) {
-	send_json_reply( [ 'error' => 'Unauthorized.' ], false );
+// @see https://gist.github.com/rchrd2/c94eb4701da57ce9a0ad4d2b00794131
+if ( empty( $_SERVER['PHP_AUTH_USER'] ) || empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+	send_http_unauthorized();
+}
+
+// cpanel instance
+$host = isset( $_REQUEST['HTTP_HOST'] ) ? $_REQUEST['HTTP_HOST'] : gethostname(); // 127.0.0.1 ?
+$port = 2083; // cPanel only
+
+$cpanel = new Cpanel( $host, $port );
+$cpanel->loginBasic( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+try {
+	$addondomains = $cpanel->AddonDomain_listaddondomains();
+} catch ( Exception $e ) {
+	send_http_unauthorized();
 }
 
 // parse request
 $action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
 switch ( $action ) {
+	case 'databases':
+		$databases = $cpanel->MysqlFE_listdbs( get_current_user() );
+		$db_users  = $cpanel->MysqlFE_listusers( get_current_user() );
+
+		var_dump( $addondomains, $databases, $db_users );
+
+		// now search for known frameworks
+		// in public_html and addon domains folders
+		// and complete database credentials as possible
+		break;
+
 	default:
 		$data = array();
 }
 
+
+function send_http_unauthorized() {
+	header( 'HTTP/1.1 401 Authorization Required' );
+	header( 'WWW-Authenticate: Basic realm="Access denied"' );
+	exit;
+}
 
 /**
  * @param array $data
