@@ -12,8 +12,22 @@ if ( ! file_exists( SWIM_CLIENT_PATH ) ) {
 	@mkdir( SWIM_CLIENT_PATH );
 }
 
+// remote phar script content
+$client_script_content = @file_get_contents( SWIM_CLIENT_SCRIPT );
+
+// local phar script
 $client_script = SWIM_CLIENT_PATH . '/' . SWIM_CLIENT_NAME;
+
+// check local version
+if ( file_exists( $client_script ) ) {
+	// maybe update?
+
+	// todo compare version: https://developer.wordpress.org/reference/functions/get_plugin_data/
+	// todo if remote version > local version
+	// todo delete local file
+}
+
+// install
 if ( ! file_exists( $client_script ) ) {
-	$client_script_content = @file_get_contents( SWIM_CLIENT_SCRIPT );
 	file_put_contents( $client_script, $client_script_content );
 }

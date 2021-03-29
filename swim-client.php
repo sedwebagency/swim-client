@@ -1,4 +1,8 @@
 <?php
+/**
+ * todo add headers: https://developer.wordpress.org/reference/functions/get_plugin_data/
+ * todo use phar https://blog.programster.org/creating-phar-files
+ */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
 define( 'SWIM_CLIENT_VERSION', '1.0.0' );
