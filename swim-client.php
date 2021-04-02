@@ -8,6 +8,41 @@ header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 define( 'SWIM_CLIENT_VERSION', '1.0.0' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
+define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
+
+$home_dir = posix_getpwuid( getmyuid() )['dir'];
+define( 'SOFTACULOUS_DIR', $home_dir . '/.softaculous' );
+
+$data = array();
+
+$softaculous_installations = SOFTACULOUS_DIR . '/installations.php';
+if ( file_exists( $softaculous_installations ) ) {
+	$installations = @unserialize( @file_get_contents( $softaculous_installations ) );
+
+	$data['installations'] = array();
+	foreach ( $installations as &$installation ) {
+		$installation = (object) $installation;
+
+		$data['installations'][] = array(
+			'domain'    => $installation->softdomain,
+			'path'      => $installation->softpath,
+			'url'       => $installation->softurl,
+			'db_host'   => $installation->softdbhost,
+			'db_name'   => $installation->softdb,
+			'db_user'   => $installation->softdbuser,
+			'db_pass'   => $installation->softdbpass,
+			'db_prefix' => $installation->dbprefix,
+		);
+	}
+}
+
+// debug
+if ( SWIM_DEBUG ) {
+	@ini_set( 'display_errors', 1 );
+	@ini_set( 'log_errors', 1 );
+	error_reporting( E_ALL ^ E_NOTICE );
+}
+
 // check request auth
 // @see https://gist.github.com/rchrd2/c94eb4701da57ce9a0ad4d2b00794131
 if ( empty( $_SERVER['PHP_AUTH_USER'] ) || empty( $_SERVER['PHP_AUTH_PW'] ) ) {
@@ -15,8 +50,11 @@ if ( empty( $_SERVER['PHP_AUTH_USER'] ) || empty( $_SERVER['PHP_AUTH_PW'] ) ) {
 }
 
 // cpanel instance
-$host = isset( $_REQUEST['HTTP_HOST'] ) ? $_REQUEST['HTTP_HOST'] : gethostname(); // 127.0.0.1 ?
-$port = 2083; // cPanel only
+$host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : gethostname();
+// WHM port when WHM is available (usually 2087)
+// cPanel port when WHM is not available (usually 2083)
+// Please note: cpanel_jsonapi_user is ignored when using cPanel port
+$port = isset( $_REQUEST['cpanel_port'] ) ? intval( $_REQUEST['cpanel_port'] ) : 2083;
 
 $cpanel = new Cpanel( $host, $port );
 $cpanel->loginBasic( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
@@ -26,14 +64,30 @@ try {
 	send_http_unauthorized();
 }
 
+$data['domains'] = array();
+foreach ( $addondomains as $addondomain ) {
+	$data['domains'][] = array(
+		'domain'    => $addondomain->domain,
+		'site_path' => $addondomain->dir,
+		'site_size' => folderSize( $addondomain->dir ),
+	);
+}
+
 // parse request
 $action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
 switch ( $action ) {
 	case 'databases':
 		$databases = $cpanel->MysqlFE_listdbs( get_current_user() );
-		$db_users  = $cpanel->MysqlFE_listusers( get_current_user() );
 
-		var_dump( $addondomains, $databases, $db_users );
+		$data['databases'] = array();
+		foreach ( $databases as $database ) {
+			$data['databases'][] = array(
+				'db_name'    => $database->db,
+				'db_users'   => array_pluck( $database->userlist, 'user' ),
+				'db_size'    => $database->size,
+				'db_sizemeg' => $database->sizemeg,
+			);
+		}
 
 		// now search for known frameworks
 		// in public_html and addon domains folders
@@ -41,9 +95,14 @@ switch ( $action ) {
 		break;
 
 	default:
-		$data = array();
 }
 
+if ( ! headers_sent() ) {
+	header( 'Content-Type: application/json; charset=utf-8' );
+}
+
+echo json_encode( $data, JSON_PRETTY_PRINT );
+exit;
 
 function send_http_unauthorized() {
 	header( 'HTTP/1.1 401 Authorization Required' );
@@ -265,4 +324,37 @@ class Cpanel {
 
 		return $result;
 	}
+}
+
+/**
+ * Pluck an array of values from an array. (Only for PHP 5.3+)
+ *
+ * @param  $array - data
+ * @param  $key - value you want to pluck from array
+ *
+ * @return array only with key data
+ *
+ * @see https://gist.github.com/ozh/82a17c2be636a2b1c58b49f271954071#file-pluck-php
+ */
+function array_pluck( $array, $key ) {
+	return array_map( function ( $v ) use ( $key ) {
+		return is_object( $v ) ? $v->$key : $v[ $key ];
+	}, $array );
+}
+
+/**
+ * @param string $dir
+ *
+ * @return int
+ *
+ * @see https://gist.github.com/eusonlito/5099936
+ */
+function folderSize( $dir ) {
+	$size = 0;
+
+	foreach ( glob( rtrim( $dir, '/' ) . '/*', GLOB_NOSORT ) as $each ) {
+		$size += is_file( $each ) ? filesize( $each ) : folderSize( $each );
+	}
+
+	return $size;
 }
