@@ -1,0 +1,19 @@
+{
+  "name": "swim-client",
+  "description": "Swim Client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sedwebagency/swim-client.git"
+  },
+  "author": "Babini Mazzari S.r.l.",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/sedwebagency/swim-client/issues"
+  },
+  "homepage": "https://github.com/sedwebagency/swim-client#readme",
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-inject-string": "^1.1.2",
+    "gulp-string-replace": "^1.1.2"
+  }
+}
