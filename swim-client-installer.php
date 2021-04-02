@@ -2,8 +2,9 @@
 define( 'SWIM_CLIENT_INSTALLER_VERSION', '1.0.0' );
 
 // https://stackoverflow.com/a/30926828/1160173
-$home_dir = posix_getpwuid( getmyuid() )['dir'];
-define( 'SWIM_CLIENT_PATH', $home_dir . '/swim-client' );
+$home_dir        = posix_getpwuid( getmyuid() )['dir'];
+$public_html_dir = $home_dir . '/public_html';
+define( 'SWIM_CLIENT_PATH', $public_html_dir . '/.swim-client' );
 
 define( 'SWIM_CLIENT_NAME', 'swim-client.php' );
 define( 'SWIM_CLIENT_SCRIPT', 'https://raw.githubusercontent.com/sedwebagency/swim-client/master/swim-client.php' );
