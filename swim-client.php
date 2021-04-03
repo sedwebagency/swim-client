@@ -1,5 +1,10 @@
 <?php
 /**
+ * examples:
+ * - https://sedwebdemo.srv3.sedweb.it/.swim-client/swim-client.php?cpanel_port=2087&action=databases
+ * - https://battipav.hippi1.sedweb.it/.swim-client/swim-client.php?cpanel_port=2083&action=databases
+ */
+/**
  * todo add headers: https://developer.wordpress.org/reference/functions/get_plugin_data/
  * todo use phar https://blog.programster.org/creating-phar-files
  */
