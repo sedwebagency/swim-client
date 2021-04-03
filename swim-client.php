@@ -1,8 +1,14 @@
 <?php
 /**
- * examples:
- * - https://sedwebdemo.srv3.sedweb.it/.swim-client/swim-client.php?cpanel_port=2087&action=databases
- * - https://battipav.hippi1.sedweb.it/.swim-client/swim-client.php?cpanel_port=2083&action=databases
+ * if WHM is available use port 2087 and WHM credentials; the unix function
+ * get_current_user() will detect the cPanel account thanks to the called domain name
+ *      if AutoSSL is available
+ *          - https://sedwebdemo.srv3.sedweb.it/.swim-client/swim-client.php?cpanel_port=2087&action=databases
+ *      if AutoSSL is not available
+ *          - http://accapo.hippi1.sedweb.it/.swim-client/swim-client.php?cpanel_port=2087&action=databases
+ *
+ * if WHM is not available (cPanel only) use port 2083 and cPanel credentials
+ *      - https://srv-dev.sedwebtools.it/.swim-client/swim-client.php?cpanel_port=2083&action=databases
  */
 /**
  * todo add headers: https://developer.wordpress.org/reference/functions/get_plugin_data/
