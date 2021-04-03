@@ -13,30 +13,7 @@ define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'
 $home_dir = posix_getpwuid( getmyuid() )['dir'];
 define( 'SOFTACULOUS_DIR', $home_dir . '/.softaculous' );
 
-$data = array();
-
-$softaculous_installations = SOFTACULOUS_DIR . '/installations.php';
-if ( file_exists( $softaculous_installations ) ) {
-	$installations = @unserialize( @file_get_contents( $softaculous_installations ) );
-
-	$data['installations'] = array();
-	foreach ( $installations as &$installation ) {
-		$installation = (object) $installation;
-
-		$data['installations'][] = array(
-			'domain'    => $installation->softdomain,
-			'path'      => $installation->softpath,
-			'url'       => $installation->softurl,
-			'db_host'   => $installation->softdbhost,
-			'db_name'   => $installation->softdb,
-			'db_user'   => $installation->softdbuser,
-			'db_pass'   => $installation->softdbpass,
-			'db_prefix' => $installation->dbprefix,
-		);
-	}
-}
-
-// debug
+// maybe enable debug
 if ( SWIM_DEBUG ) {
 	@ini_set( 'display_errors', 1 );
 	@ini_set( 'log_errors', 1 );
@@ -64,7 +41,41 @@ try {
 	send_http_unauthorized();
 }
 
+// logged in, now ready to prepare the response
+$data = array();
+
+$data['installations'] = array();
+
+$softaculous_installations = SOFTACULOUS_DIR . '/installations.php';
+if ( file_exists( $softaculous_installations ) ) {
+	// get all softaculous known installations
+	$installations = @unserialize( @file_get_contents( $softaculous_installations ) );
+
+	// sort by domain name
+	usort( $installations, function ( $a, $b ) {
+		return strcasecmp( $a['softdomain'], $b['softdomain'] );
+	} );
+
+	// create the response structure
+	foreach ( $installations as &$installation ) {
+		$installation = (object) $installation;
+
+		$data['installations'][] = array(
+			'domain'    => $installation->softdomain,
+			'path'      => $installation->softpath,
+			'url'       => $installation->softurl,
+			'db_host'   => $installation->softdbhost,
+			'db_name'   => $installation->softdb,
+			'db_user'   => $installation->softdbuser,
+			'db_pass'   => $installation->softdbpass,
+			'db_prefix' => $installation->dbprefix,
+		);
+	}
+}
+
 $data['domains'] = array();
+
+// already got the addon domains when checking the user auth
 foreach ( $addondomains as $addondomain ) {
 	$data['domains'][] = array(
 		'domain'    => $addondomain->domain,
