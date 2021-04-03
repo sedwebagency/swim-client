@@ -43,6 +43,17 @@ if ( SWIM_DEBUG ) {
 	error_reporting( E_ALL ^ E_NOTICE );
 }
 
+if ( empty( $_SERVER['PHP_AUTH_USER'] ) && empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+	// not passed or CGI/FastCGI web server, which doesn't have PHP_AUTH* info
+	if ( ! empty( $_SERVER['PHP_AUTH_DIGEST_RAW'] ) ) {
+		list( $basic, $base64_encoded ) = explode( ' ', $_SERVER['PHP_AUTH_DIGEST_RAW'] );
+		$auth_user_pass = base64_decode( $base64_encoded );
+		if ( false !== strpos( $auth_user_pass, ':' ) ) {
+			list( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) = explode( ':', $auth_user_pass );
+		}
+	}
+}
+
 // check request auth
 // @see https://gist.github.com/rchrd2/c94eb4701da57ce9a0ad4d2b00794131
 if ( empty( $_SERVER['PHP_AUTH_USER'] ) || empty( $_SERVER['PHP_AUTH_PW'] ) ) {

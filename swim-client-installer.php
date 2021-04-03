@@ -31,4 +31,10 @@ if ( file_exists( $client_script ) ) {
 // install
 if ( ! file_exists( $client_script ) ) {
 	file_put_contents( $client_script, $client_script_content );
+
+	// add support for CGI/FastCGI
+	file_put_contents(
+		SWIM_CLIENT_PATH . '/.htaccess',
+		'SetEnvIfNoCase ^Authorization$ "(.+)" PHP_AUTH_DIGEST_RAW=$1'
+	);
 }
