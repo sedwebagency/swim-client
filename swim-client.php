@@ -16,7 +16,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.3.0' );
+define( 'SWIM_CLIENT_VERSION', '1.3.1' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -201,14 +201,10 @@ class Cpanel {
 	 *
 	 * @return array
 	 * @throws Exception
-	 * @since 2.5
-	 *
 	 */
 	public function MysqlFE_listdbs( $account ) {
 		$url = $this->buildCpanelUrlV2( $account, 'MysqlFE', 'listdbs' );
-		$res = $this->executeCallCpanel( $url );
-
-		return $res;
+		return $this->executeCallCpanel( $url );
 	}
 
 	/**
@@ -216,14 +212,10 @@ class Cpanel {
 	 *
 	 * @return array
 	 * @throws Exception
-	 * @since 2.5
-	 *
 	 */
 	public function MysqlFE_listusers( $account ) {
 		$url = $this->buildCpanelUrlV2( $account, 'MysqlFE', 'listusers' );
-		$res = $this->executeCallCpanel( $url );
-
-		return $res;
+		return $this->executeCallCpanel( $url );
 	}
 
 	private function buildCpanelUrlV2( $user, $module, $command, $opts = [] ) {
