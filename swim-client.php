@@ -16,7 +16,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.2.0' );
+define( 'SWIM_CLIENT_VERSION', '1.3.0' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -126,47 +126,6 @@ if ( ! headers_sent() ) {
 send_json_reply( $data, true );
 exit;
 
-function send_http_unauthorized() {
-	header( 'HTTP/1.1 401 Authorization Required' );
-	header( 'WWW-Authenticate: Basic realm="Access denied"' );
-	exit;
-}
-
-/**
- * @param array $data
- */
-function send_json_reply( $data, $success = true ) {
-	$output = array_merge( $data, array(
-		'swim_client_version' => SWIM_CLIENT_VERSION,
-		'success'             => $success,
-	) );
-
-	header( 'Content-Type: application/json' );
-	echo json_encode( $output, JSON_PRETTY_PRINT );
-	exit;
-}
-
-/**
- * @return string
- */
-function get_real_ip_address() {
-	if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-		// whether ip is from the share internet  
-		$ip = $_SERVER['HTTP_CLIENT_IP'];
-	} else if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-		// whether ip is from the proxy
-		$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-	} else if ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
-		// whether ip is from the remote address
-		$ip = $_SERVER['REMOTE_ADDR'];
-	} else {
-		// fallback
-		$ip = '127.0.0.1';
-	}
-
-	return $ip;
-}
-
 
 /**
  * cPanel API Docs
@@ -268,6 +227,7 @@ class Cpanel {
 	}
 
 	private function buildCpanelUrlV2( $user, $module, $command, $opts = [] ) {
+		// todo forse qui dovrei usare il protocol usato dal browser, non forzarlo
 		$url = "https://{$this->host}:{$this->port}/json-api/cpanel?";
 		$url .= "&cpanel_jsonapi_user=$user";
 		$url .= "&cpanel_jsonapi_module=$module";
@@ -279,7 +239,7 @@ class Cpanel {
 
 		return $url;
 	}
-	
+
 	/**
 	 * @param string $url
 	 *
@@ -296,7 +256,7 @@ class Cpanel {
 
 		return $res->cpanelresult->data;
 	}
-	
+
 	private function executeCall( $url ) {
 		$curl = curl_init();
 		curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 );
@@ -353,4 +313,49 @@ function folderSize( $dir ) {
 	}
 
 	return $size;
+}
+
+/**
+ * Open browser native auth request popup
+ */
+function send_http_unauthorized() {
+	header( 'HTTP/1.1 401 Authorization Required' );
+	header( 'WWW-Authenticate: Basic realm="Access denied"' );
+	exit;
+}
+
+/**
+ * @param array $data
+ * @param bool $success
+ */
+function send_json_reply( $data, $success = true ) {
+	$output = array_merge( $data, array(
+		'swim_client_version' => SWIM_CLIENT_VERSION,
+		'success'             => $success,
+	) );
+
+	header( 'Content-Type: application/json' );
+	echo json_encode( $output, JSON_PRETTY_PRINT );
+	exit;
+}
+
+/**
+ * @return string
+ */
+function get_real_ip_address() {
+	if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+		// whether ip is from the share internet  
+		$ip = $_SERVER['HTTP_CLIENT_IP'];
+	} else if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+		// whether ip is from the proxy
+		$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	} else if ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
+		// whether ip is from the remote address
+		$ip = $_SERVER['REMOTE_ADDR'];
+	} else {
+		// fallback
+		$ip = '127.0.0.1';
+	}
+
+	return $ip;
 }
