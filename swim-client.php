@@ -16,7 +16,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.1.0' );
+define( 'SWIM_CLIENT_VERSION', '1.2.0' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -279,16 +279,7 @@ class Cpanel {
 
 		return $url;
 	}
-
-	private function buildWhmUrlV1( $command, $opts = [] ) {
-		$url = "https://{$this->host}:{$this->port}/json-api/{$command}?api.version=1";
-		foreach ( $opts as $k => $v ) {
-			$url .= "&{$k}={$v}";
-		}
-
-		return $url;
-	}
-
+	
 	/**
 	 * @param string $url
 	 *
@@ -305,24 +296,7 @@ class Cpanel {
 
 		return $res->cpanelresult->data;
 	}
-
-	/**
-	 * @param string $url
-	 *
-	 * @return array
-	 * @throws Exception
-	 */
-	private function executeCallWhm( $url ) {
-		$res = $this->executeCall( $url );
-		$res = json_decode( $res );
-
-		if ( ! $res->metadata->result ) {
-			throw new Exception( $res->metadata->reason );
-		}
-
-		return $res->data;
-	}
-
+	
 	private function executeCall( $url ) {
 		$curl = curl_init();
 		curl_setopt( $curl, CURLOPT_SSL_VERIFYHOST, 0 );
