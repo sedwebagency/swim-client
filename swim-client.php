@@ -16,7 +16,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.0.0' );
+define( 'SWIM_CLIENT_VERSION', '1.1.0' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -123,7 +123,7 @@ if ( ! headers_sent() ) {
 	header( 'Content-Type: application/json; charset=utf-8' );
 }
 
-echo json_encode( $data, JSON_PRETTY_PRINT );
+send_json_reply( $data, true );
 exit;
 
 function send_http_unauthorized() {
