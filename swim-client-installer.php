@@ -1,5 +1,5 @@
 <?php
-define( 'SWIM_CLIENT_INSTALLER_VERSION', '1.1.2' );
+define( 'SWIM_CLIENT_INSTALLER_VERSION', '1.1.3' );
 
 // https://stackoverflow.com/a/30926828/1160173
 $home_dir        = posix_getpwuid( getmyuid() )['dir'];
@@ -50,5 +50,5 @@ if ( ! file_exists( $client_script ) ) {
 // house keeping
 if ( file_exists( $public_html_dir . '/.swim-client' ) ) {
 	echo "found old installation, clean..." . PHP_EOL;
-	rmdir( $public_html_dir . '/.swim-client' );
+	system( 'rm -rf -- ' . escapeshellarg( $public_html_dir . '/.swim-client' ) );
 }
