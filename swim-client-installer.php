@@ -50,7 +50,5 @@ if ( ! file_exists( $client_script ) ) {
 // house keeping
 if ( file_exists( $public_html_dir . '/.swim-client' ) ) {
 	echo "found old installation, clean..." . PHP_EOL;
-
-	echo 'rm -rf -- ' . escapeshellarg( $public_html_dir . '/.swim-client' ) . PHP_EOL;
 	system( 'rm -rf -- ' . escapeshellarg( $public_html_dir . '/.swim-client' ) );
 }
