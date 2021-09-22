@@ -18,7 +18,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.4.1' );
+define( 'SWIM_CLIENT_VERSION', '1.4.2' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -57,7 +57,7 @@ try {
 // logged in, now ready to prepare the response
 $data = array();
 
-$data['shell_exec'] = array(
+$data['system'] = array(
 	'bin_php'     => get_bin_php(),
 	'bin_php_sys' => PHP_BINARY,
 	'bin_wp'      => get_bin_wp(),
@@ -313,7 +313,7 @@ function get_bin_php() {
 		}
 
 		if ( ! file_exists( $bin_php ) ) {
-			$bin_php = shell_exec( 'which php' );
+			$bin_php = trim( shell_exec( 'which php' ) );
 		}
 	}
 
@@ -349,7 +349,7 @@ function wpcli_exec( $command, $path = null ) {
 		$complete_command .= " --path='$path'";
 	}
 
-	return shell_exec( $complete_command );
+	return trim( shell_exec( $complete_command ) );
 }
 
 /**
