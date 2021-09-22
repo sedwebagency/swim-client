@@ -13,10 +13,12 @@
 /**
  * todo add headers: https://developer.wordpress.org/reference/functions/get_plugin_data/
  * todo use phar https://blog.programster.org/creating-phar-files
+ *
+ * todo use softaculous cli /usr/local/cpanel/3rdparty/bin/php /usr/local/cpanel/whostmgr/docroot/cgi/softaculous/cli.php  --list_ins --resp=json
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.3.1' );
+define( 'SWIM_CLIENT_VERSION', '1.4.0' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -55,8 +57,15 @@ try {
 // logged in, now ready to prepare the response
 $data = array();
 
+$data['system'] = array(
+	'bin_php'     => get_bin_php(),
+	'bin_php_sys' => PHP_BINARY,
+	'bin_wp'      => get_bin_wp(),
+);
+
 $data['installations'] = array();
 
+// todo use softaculous api /usr/local/cpanel/3rdparty/bin/php /usr/local/cpanel/whostmgr/docroot/cgi/softaculous/cli.php  --list_ins --resp=json
 $softaculous_installations = SOFTACULOUS_DIR . '/installations.php';
 if ( file_exists( $softaculous_installations ) ) {
 	// get all softaculous known installations
@@ -71,7 +80,7 @@ if ( file_exists( $softaculous_installations ) ) {
 	foreach ( $installations as &$installation ) {
 		$installation = (object) $installation;
 
-		$data['installations'][] = array(
+		$item = array(
 			'domain'    => $installation->softdomain,
 			'path'      => $installation->softpath,
 			'url'       => $installation->softurl,
@@ -81,6 +90,17 @@ if ( file_exists( $softaculous_installations ) ) {
 			'db_pass'   => $installation->softdbpass,
 			'db_prefix' => $installation->dbprefix,
 		);
+
+		// WordPress only (WordPress SID = 26)
+		if ( 26 === $installation->sid ) {
+			$sedweb_service_ver = wpcli_exec( 'plugin get sedweb-service --field=version --skip-themes --skip-plugins', $installation->softpath );
+
+			$item['wp'] = array(
+				'sedweb_service_ver' => $sedweb_service_ver
+			);
+		}
+
+		$data['installations'][ $installation->insid ] = $item;
 	}
 }
 
@@ -204,6 +224,7 @@ class Cpanel {
 	 */
 	public function MysqlFE_listdbs( $account ) {
 		$url = $this->buildCpanelUrlV2( $account, 'MysqlFE', 'listdbs' );
+
 		return $this->executeCallCpanel( $url );
 	}
 
@@ -215,6 +236,7 @@ class Cpanel {
 	 */
 	public function MysqlFE_listusers( $account ) {
 		$url = $this->buildCpanelUrlV2( $account, 'MysqlFE', 'listusers' );
+
 		return $this->executeCallCpanel( $url );
 	}
 
@@ -272,6 +294,62 @@ class Cpanel {
 
 		return $result;
 	}
+}
+
+function get_bin_php() {
+	global $bin_php;
+
+	if ( null === $bin_php ) {
+		$possibilities = array(
+			'/usr/local/bin/php',
+			'/usr/bin/php'
+		);
+
+		foreach ( $possibilities as $possibility ) {
+			if ( file_exists( $possibility ) ) {
+				$bin_php = $possibility;
+				break;
+			}
+		}
+
+		if ( ! file_exists( $bin_php ) ) {
+			$bin_php = system( 'which php' );
+		}
+	}
+
+	return $bin_php;
+}
+
+function get_bin_wp() {
+	global $bin_wp;
+
+	if ( null === $bin_wp ) {
+		$possibilities = array(
+			'/usr/local/bin/wp',
+			'/usr/bin/wp',
+			'~/wp-cli.phar'
+		);
+
+		foreach ( $possibilities as $possibility ) {
+			if ( file_exists( $possibility ) ) {
+				$bin_wp = $possibility;
+				break;
+			}
+		}
+	}
+
+	return $bin_wp;
+}
+
+function wpcli_exec( $command, $path = null ) {
+	global $bin_php, $bin_wp;
+
+	$complete_command = "$bin_php $bin_wp $command";
+	if ( $path ) {
+		$complete_command .= " --path='$path'";
+	}
+
+	return system( $complete_command );
 }
 
 /**
