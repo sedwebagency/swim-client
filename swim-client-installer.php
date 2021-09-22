@@ -1,5 +1,5 @@
 <?php
-define( 'SWIM_CLIENT_INSTALLER_VERSION', '1.1.4' );
+define( 'SWIM_CLIENT_INSTALLER_VERSION', '1.1.5' );
 
 // https://stackoverflow.com/a/30926828/1160173
 $home_dir        = posix_getpwuid( getmyuid() )['dir'];
@@ -28,10 +28,12 @@ if ( file_exists( $client_script ) ) {
 	echo "client script already exists: $client_script" . PHP_EOL;
 	// maybe update?
 
-	echo "update process not implemented yet..." . PHP_EOL;
+	// echo "update process not implemented yet..." . PHP_EOL;
 	// todo compare version: https://developer.wordpress.org/reference/functions/get_plugin_data/
 	// todo if remote version > local version
 	// todo delete local file
+
+	@unlink( $client_script );
 }
 
 // install
