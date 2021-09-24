@@ -18,7 +18,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.4.2' );
+define( 'SWIM_CLIENT_VERSION', '1.4.3' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -92,7 +92,7 @@ if ( file_exists( $softaculous_installations ) ) {
 		);
 
 		// WordPress only (WordPress SID = 26)
-		if ( 26 === $installation->sid ) {
+		if ( 26 === intval( $installation->sid ) ) {
 			$sedweb_service_ver = wpcli_exec( 'plugin get sedweb-service --field=version --skip-themes --skip-plugins', $installation->softpath );
 
 			$item['wp'] = array(
