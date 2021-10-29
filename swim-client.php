@@ -18,7 +18,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.4.5' );
+define( 'SWIM_CLIENT_VERSION', '1.4.6' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -397,7 +397,24 @@ function send_json_reply( $data, $success = true ) {
 	) );
 
 	header( 'Content-Type: application/json' );
-	echo json_encode( $output, JSON_PRETTY_PRINT );
+
+	$json_str = json_encode( $output, JSON_PRETTY_PRINT );
+	if ( ! $json_str ) {
+		$output   = mb_convert_encoding( $output, 'UTF-8' );
+		$json_str = json_encode( $output, JSON_PRETTY_PRINT );
+	}
+
+	if ( ! $json_str ) {
+		$json_str = json_encode( array(
+			'swim_client_version' => SWIM_CLIENT_VERSION,
+			'error'               => 'Cant json_encode the collected output.',
+		), JSON_PRETTY_PRINT );
+	}
+
+	echo $json_str;
+	if ( SWIM_DEBUG ) {
+		var_dump( $output );
+	}
 	exit;
 }
 
