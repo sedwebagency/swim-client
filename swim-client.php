@@ -18,7 +18,7 @@
  */
 header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
 
-define( 'SWIM_CLIENT_VERSION', '1.4.4' );
+define( 'SWIM_CLIENT_VERSION', '1.4.5' );
 define( 'SWIM_CLIENT_DIR', __DIR__ );
 
 define( 'SWIM_DEBUG', isset( $_REQUEST['swim_debug'] ) && $_REQUEST['swim_debug'] == 1 );
@@ -77,32 +77,22 @@ if ( file_exists( $softaculous_installations ) ) {
 	} );
 
 	// create the response structure
-	foreach ( $installations as &$installation ) {
-		$installation = (object) $installation;
 
-		$item = array(
-			'domain'    => $installation->softdomain,
-			'path'      => $installation->softpath,
-			'url'       => $installation->softurl,
-			'db_host'   => $installation->softdbhost,
-			'db_name'   => $installation->softdb,
-			'db_user'   => $installation->softdbuser,
-			'db_pass'   => $installation->softdbpass,
-			'db_prefix' => $installation->dbprefix,
-		);
+	foreach ( $installations as $installation ) {
+		$item = $installation;
 
 		// WordPress only (WordPress SID = 26)
-		if ( 26 === intval( $installation->sid ) ) {
+		if ( 26 === intval( $installation['sid'] ) ) {
 			$item['wp'] = array();
 
 			// sedweb-service version
-			$item['wp']['sedweb_service_ver'] = wpcli_exec( 'plugin get sedweb-service --field=version --skip-themes --skip-plugins', $installation->softpath );
+			$item['wp']['sedweb_service_ver'] = wpcli_exec( 'plugin get sedweb-service --field=version --skip-themes --skip-plugins', $installation['softpath'] );
 
 			// is infected
-			$item['wp']['wp_is_infected'] = file_exists( $installation->softpath . '/upl.php' );
+			$item['wp']['wp_is_infected'] = file_exists( $installation['softpath'] . '/upl.php' );
 		}
 
-		$data['installations'][ $installation->insid ] = $item;
+		$data['installations'][ $installation['insid'] ] = $item;
 	}
 }
 
